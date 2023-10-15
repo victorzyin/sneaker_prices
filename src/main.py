@@ -24,6 +24,8 @@ def scrape(url):
     req = scraper.get(url)
     soup = BeautifulSoup(req.content, "html.parser")
 
+    print_list = []
+
     for url in soup.find_all("a"):
         try:
             sneaker_name = url.get("href")
@@ -32,13 +34,19 @@ def scrape(url):
             sneaker_name = sneaker_name.removeprefix("/sneakers/")
             sneaker_name = remove_suffix(sneaker_name)
             price = url.find(attrs={"data-qa": "grid_cell_product_price"})
-            print(sneaker_name + " " + price.text)
+            print_list.append((sneaker_name, price.text))
             database.insert(conn, sneaker_name, str(date.today()),
                             price.text.replace(",", "").replace("$", ""))
         except:
             continue
 
+    print_list.sort(key = lambda x: x[0])
+    for tup in print_list:
+        print(tup[0] + " " + tup[1])
+
     conn.commit()
+
+# https://www.goat.com/search?query=air+jordan+1+high&size_converted=us_sneakers_men_8.5&product_condition=new_no_defects&gender=men
 
 INPUT_FILE = "../resources/input_shoes.csv"
 with open(INPUT_FILE, "r") as file:
